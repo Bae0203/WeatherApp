@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+    <script>
+        let weather = "";
+        let country = "seoul";
+        
+        function reload(){
+            location.reload();
+        }
+
+        function errorWeather(){
+            alert(`${country}이라는 도시가 없습니다! 도시명이 확실한지, 도시가 맞는지 확인해주세요!`);
+        }
+
+        function weatherCh(id, info){
+            if(id>=800){
+                if(id==800){
+                    paint_f("맑음", info);
+                }else{
+                    paint_f("구름", info);
+                }
+            }else if(id>=700){
+                paint_f("안개", info);
+            }else if(id>=600){
+                paint_f("눈", info);
+            }else if(id>=500){
+                paint_f("비", info);
+            }else if(id>=300){
+                paint_f("소나기 비",info);
+            }else if(id>=200){
+                paint_f("천둥치는 비", info);
+            }
+
+        }
+
+        function paint_f(w_str, info){
+            weather=w_str;
+            let temp = info.main.temp - 273.15, temp_min = info.main.temp_min - 273.15, temp_max = info.main.temp_max - 273.15;
+
+            try{
+                let wind = info.wind.speed;
+                console.log(wind);
+                $(".wind_tr td").text(wind+"m/s");
+            }catch{
+                $(".wind_tr td").text("없음");
+                console.log("no-wind");
+            }try{
+                let cloud = info.clouds.all;
+                console.log(cloud);
+                $(".cloud_tr td").text(cloud+"%");
+            }catch{
+                $(".cloud_tr td").text("없음");
+                console.log("no-rain");
+            }try{
+                let rain = info.rain;
+                let rain_1h = rain[Object.keys(rain)[0]];
+                console.log(rain_1h);
+                $(".rain_tr td").text(rain_1h+"mm");
+            }catch{
+                $(".rain_tr td").text("없음");
+                console.log("no-rain");
+            }try{
+                let snow = info.snow;
+                let snow_1h = snow[Object.keys(snow)[0]];
+                console.log(snow_1h);
+                $(".snow_tr td").text(snow_1h+"mm");
+            }catch{
+                $(".snow_tr td").text("없음");
+                console.log("no-snow");
+            }
+            $(".city").text(country);
+            $(".temp").text((temp).toFixed(2));
+            $(".temp_max").text((temp_max).toFixed(2));
+            $(".temp_min").text((temp_min).toFixed(2));
+            $(".weather").text(weather);
+            $("#imgbox").css({"background-image":`url('./images/${w_str}.jpg')`});
+            $(".icon_box").css({"background-image":`url('./images/icons/${w_str}.png')`});
+        }
+
+        function inBtnClick(){
+            console.log($("#input").val());
+            country = $("#input").val();
+            getWeather();
+        }
+
+        function getWeather(){
+            let apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${country}&appid=bf3a6a589f728c11bb330993fc09817a`
+            $.ajax({
+                type:'GET',
+                url:apiUrl,
+                success: (e)=>{console.log(e); weatherCh(e.weather[0].id, e)},
+                error:(e)=>{console.log(e); errorWeather();}
+            });
+        }
+        getWeather();
+    </script>
+    <style>
+        *{margin: 0; padding: 0; font-family: 'Do Hyeon', sans-serif; font-size: 1.1em;}
+        #mainbox{position: relative; border-radius: 50px; display: flex; width: 1050px; height: 650px; background-color: rgb(180, 180, 180); margin: 3% auto; box-shadow: 10px 10px 15px rgba(113, 113, 113, 0.6);}
+            #imgbox{border-radius: 50px 0 0 50px; width: 48%; height: 100%; overflow: hidden; position: relative; background-image: url("./images/notfound.jpg"); opacity: 0.7; background-position: right top; background-size: 200%;}
+                .img_p{z-index: 1; display: inline-block; float: right; margin-top: 5%; margin-right: 4%;}
+            #infobox{border-radius: 0 50px 50px 0; width: 48%; height: 100%; font-size: 1.3em;}
+                .info_p{margin-top: 5%;}
+                .top{display: flex;}
+                .icon_box{width: 50px; height: 50px; background-image: url("./images/icons/notfound.png"); background-size: cover;}
+                .reload_box{border: none; width: 50px; height: 50px; background-image: url("./images/icons/reload.png"); background-size: cover; margin-left: 70%;}
+
+
+            table{width: 100%; height: 280px; margin-top: 5%;}
+            
+
+            #midbox{width: 4%;height: 100%;}
+                #midbox .line{border-radius: 50px; width: 6px; height: 580px; background-color: rgb(113, 113, 113, 0.2); margin: 35px auto;}
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">    
+</head>
+<body>
+    <div id="input_box">
+        <div>
+            <input id="input" type="text" placeholder="도시 이름을 적어주세요">
+            <button id="input_btn" onclick="inBtnClick()">입력</button>
+        </div>
+        <p id="input_p">*영어로 입력해주세요 예)Daegu</p>
+    </div>
+    <nav id="mainbox">
+        <div id="imgbox">
+            <p class="img_p">현재 <span class="city"></span>의 온도는 <b><span class="temp"></span>℃</b> 입니다.</p>
+        </div>
+        <div id="midbox">
+            <div class="line"></div>
+        </div>
+        <div id="infobox">
+            <p class="info_p">
+                <div class="top">
+                    <div class="icon_box"></div>
+                    <div class="reload_box" onclick="reload()"></div>
+                </div>
+                <p>현재 <span class="city"></span>의 날씨는 <b><span class="weather"></span></b>입니다.</p><br>
+                <p><span class="city"></span>의 현재 온도는 <span class="temp"></span>℃이며,<br>최고 온도는 <span class="temp_max"></span>℃이고,<br>최저 온도는 <span class="temp_min"></span>℃입니다.</p>
+                <table>
+                    <tr class="wind_tr">
+                        <th>풍속</th>
+                        <td>없음</td>
+                    </tr>
+                    <tr class="cloud_tr">
+                        <th>구름</th>
+                        <td>없음</td>
+                    </tr>
+                    <tr class="rain_tr">
+                        <th>강수량</th>
+                        <td>없음</td>
+                    </tr>
+                    <tr class="snow_tr">
+                        <th>적설량</th>
+                        <td>없음</td>
+                    </tr>
+                </table>
+            </p>
+        </div>
+    </nav>
+</body>
+</html>
